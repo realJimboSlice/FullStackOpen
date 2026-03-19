@@ -9,10 +9,15 @@
   "scripts": {
     "start": "node index.js",
     "dev": "node --watch index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:frontend": "cd ../phonebook && npm run build",
+    "copy:frontend": "shx rm -rf dist && shx cp -r ../phonebook/dist ./dist",
+    "build:ui": "npm run build:frontend && npm run copy:frontend",
+    "deploy:full": "npm run build:ui && git add . && git commit -m \"uibuild\" && git push"
   },
   "dependencies": {
     "express": "^5.2.1",
-    "morgan": "^1.10.1"
+    "morgan": "^1.10.1",
+    "shx": "^0.4.0"
   }
 }
