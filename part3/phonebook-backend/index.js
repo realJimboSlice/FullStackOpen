@@ -5,8 +5,8 @@ const morgan = require("morgan");
 app.use(express.json());
 app.use(express.static("dist"));
 
-/* // MIDDLEWARE Request Logger
-const requestLogger = (request, response, next) => {
+// MIDDLEWARE Request Logger
+/* const requestLogger = (request, response, next) => {
   console.log("Method", request.method);
   console.log("Path", request.path);
   console.log("Body", request.body);
@@ -14,14 +14,7 @@ const requestLogger = (request, response, next) => {
   next();
 };
 
-app.use(requestLogger);
-
-// MIDDLEWARE Check for unknown endpoint
-const unknownEndpoint = (request, response) => {
-  response.status(404).send({ error: "unknown endpoint" });
-};
-
-app.use(unknownEndpoint); */
+app.use(requestLogger); */
 
 // MIDDLEWARE Morgan
 // app.use(morgan("tiny"));
@@ -58,9 +51,9 @@ let persons = [
 ];
 
 // Homepage
-app.get("/", (request, response) => {
+/* app.get("/", (request, response) => {
   response.send("<h1>This is the homepage, yo</h1>");
-});
+}); */
 
 // Get all entries in the phonebook
 app.get("/api/persons", (request, response) => {
@@ -133,6 +126,13 @@ app.post("/api/persons", (request, response) => {
 
   response.status(201).json(person);
 });
+
+// MIDDLEWARE Check for unknown endpoint
+/* const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: "unknown endpoint" });
+};
+
+app.use(unknownEndpoint); */
 
 // Port
 const PORT = process.env.PORT || 3001;
