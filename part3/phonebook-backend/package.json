@@ -10,6 +10,7 @@
     "start": "node index.js",
     "dev": "node --watch index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint .",
     "build:frontend": "cd ../phonebook && npm run build",
     "copy:frontend": "shx rm -rf dist && shx cp -r ../phonebook/dist ./dist",
     "build:ui": "npm run build:frontend && npm run copy:frontend",
@@ -21,5 +22,11 @@
     "mongoose": "^9.3.1",
     "morgan": "^1.10.1",
     "shx": "^0.4.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@stylistic/eslint-plugin": "^5.10.0",
+    "eslint": "^10.1.0",
+    "globals": "^17.4.0"
   }
 }
