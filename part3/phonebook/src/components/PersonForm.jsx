@@ -68,24 +68,35 @@ const PersonForm = ({
 
       const updatedPerson = { ...existingPerson, number: newNumber };
 
-      Service.update(existingPerson.id, updatedPerson).then(
-        (returnedPerson) => {
+      Service.update(existingPerson.id, updatedPerson)
+        .then((returnedPerson) => {
           setPersons((prev) =>
             prev.map((p) => (p.id === existingPerson.id ? returnedPerson : p)),
           );
-        },
-      );
-      console.log(`Succesfully updated ${updatedPerson.name}'s number!`);
 
-      setNotification({
-        text: `Succesfully updated ${updatedPerson.name}'s number!`,
-        type: "success",
-      });
-      setTimeout(() => {
-        setNotification(null);
-      }, 5000);
-      setNewName("");
-      setNewNumber("");
+          setNotification({
+            text: `Successfully updated ${returnedPerson.name}'s number!`,
+            type: "success",
+          });
+
+          setTimeout(() => {
+            setNotification(null);
+          }, 5000);
+
+          setNewName("");
+          setNewNumber("");
+        })
+        .catch((error) => {
+          setNotification({
+            text: error.response.data.error,
+            type: "error",
+          });
+
+          setTimeout(() => {
+            setNotification(null);
+          }, 5000);
+        });
+
       return;
     }
 
@@ -95,37 +106,29 @@ const PersonForm = ({
       id: Date.now(),
     };
 
-    /* axios.post("http://localhost:3001/persons", noteObject).then((response) => {
-      response.data;
-    });
-
-    setPersons((prev) => prev.concat(noteObject));
-    setNewName("");
-    setNewNumber(""); */
-
-    /* axios
-      .post("http://localhost:3001/persons", noteObject)
-      .then((response) => {
-        response.data;
-      })
-      .then(() => {
-        setPersons((prev) => prev.concat(noteObject));
+    Service.create(personObject)
+      .then((returnedPerson) => {
+        setPersons((prev) => prev.concat(returnedPerson));
+        setNotification({
+          text: `Successfully added "${returnedPerson.name}" to the phonebook!`,
+          type: "success",
+        });
+        setTimeout(() => {
+          setNotification(null);
+        }, 5000);
         setNewName("");
         setNewNumber("");
-      }); */
-
-    Service.create(personObject).then((returnPerson) =>
-      setPersons((prev) => prev.concat(returnPerson)),
-    );
-    setNotification({
-      text: `Succesfully added "${personObject.name}" to the phonebook!`,
-      type: "success",
-    });
-    setTimeout(() => {
-      setNotification(null);
-    }, 5000);
-    setNewName("");
-    setNewNumber("");
+      })
+      .catch((error) => {
+        setNotification({
+          text: error.response.data.error,
+          type: "error",
+        });
+        setTimeout(() => {
+          setNotification(null);
+        }, 5000);
+        console.log(error.response.data.error);
+      });
   };
 
   return (

@@ -19,7 +19,6 @@ app.use(express.static("dist"));
 app.use(requestLogger); */
 
 // MIDDLEWARE Morgan
-// app.use(morgan("tiny"));
 
 // 3.8 Token
 morgan.token("content", function (req, res) {
@@ -28,85 +27,51 @@ morgan.token("content", function (req, res) {
 
 app.use(morgan(":method :url :status - :response-time ms :content"));
 
-// Persons Array
-/* let persons = [
-  {
-    id: "1",
-    name: "Arto Hellas",
-    number: "040-123456",
-  },
-  {
-    id: "2",
-    name: "Ada Lovelace",
-    number: "39-44-5323523",
-  },
-  {
-    id: "3",
-    name: "Dan Abramov",
-    number: "12-43-234345",
-  },
-  {
-    id: "4",
-    name: "Mary Poppendieck",
-    number: "39-23-6423122",
-  },
-]; */
-
-// Homepage
-/* app.get("/", (request, response) => {
-  response.send("<h1>This is the homepage, yo</h1>");
-}); */
-
 // Get all entries in the phonebook
-app.get("/api/persons", (request, response) => {
-  Person.find({}).then((persons) => {
-    response.json(persons);
-  });
+app.get("/api/persons", (request, response, next) => {
+  Person.find({})
+    .then((persons) => {
+      response.json(persons);
+    })
+    .catch((error) => next(error));
 });
 
 // Find how many people in phonebook + date & time of request
-app.get("/info", (request, response) => {
-  const phonebookSize = persons.length;
+app.get("/info", (request, response, next) => {
   const date = new Date();
-  response.send(
-    `<p>There are currently ${phonebookSize} people in the phonebook.</p> 
-    <p>Request received at ${date}</p>`,
-  );
+
+  Person.countDocuments({})
+    .then((count) =>
+      response.send(`<p>There are currently ${count} people in the phonebook</p>
+  <p>Request received at ${date}</p>`),
+    )
+    .catch((error) => next(error));
 });
 
 // Find specific id
-app.get("/api/persons/:id", (request, response) => {
-  /* const id = request.params.id;
-  const person = persons.find((person) => person.id === id); */
-
-  Person.findById(request.params.id).then((person) => {
-    response.json(person);
-  });
-
-  /* if (person) {
-    response.json(person);
-  } else {
-    response.status(404).json({
-      error: `person with id ${id} not found in phonebook`,
-    });
-  } */
+app.get("/api/persons/:id", (request, response, next) => {
+  Person.findById(request.params.id)
+    .then((person) => {
+      if (person) {
+        return response.json(person);
+      } else {
+        return response.status(404).end();
+      }
+    })
+    .catch((error) => next(error));
 });
 
-// Delete entry
-app.delete("/api/persons/:id", (request, response) => {
-  const id = request.params.id;
-  persons = persons.filter((person) => person.id !== id);
-  response.status(204).end();
+// Delete entry in phonebook
+app.delete("/api/persons/:id", (request, response, next) => {
+  Person.findByIdAndDelete(request.params.id)
+    .then(() => {
+      response.status(204).end();
+    })
+    .catch((error) => next(error));
 });
 
-// Random number generator (up to 1 million)
-const randomizer = () => {
-  const randomNumber = Math.floor(Math.random() * 1000000);
-  return String(randomNumber);
-};
-
-// Create new entry
-app.post("/api/persons", (request, response) => {
+// Create new entry in phonebook
+app.post("/api/persons", (request, response, next) => {
   const body = request.body;
 
   // Check for missing name or number
@@ -114,37 +79,61 @@ app.post("/api/persons", (request, response) => {
     return response.status(400).json({ error: "name or number is missing" });
   }
 
-  // Check for similar name
-  /* if (
-    persons.find(
-      (person) =>
-        person.name.toLowerCase().trim() === body.name.toLowerCase().trim(),
-    )
-  ) {
-    return response.status(400).json({ error: "name must be unique" });
-  } */
-
   const person = new Person({
     name: body.name.trim(),
-    number: body.number,
+    number: body.number.trim(),
     // id: randomizer(),
   });
 
-  person.save().then((savedPerson) => {
-    response.json(savedPerson);
-  });
+  person
+    .save()
+    .then((savedPerson) => {
+      response.status(201).json(savedPerson);
+    })
+    .catch((error) => next(error));
+});
 
-  // persons = persons.concat(person);
+// Update entry in phonebook
+app.put("/api/persons/:id", (request, response, next) => {
+  const { name, number } = request.body;
 
-  // response.status(201).json(person);
+  Person.findById(request.params.id)
+    .then((person) => {
+      if (!person) {
+        return response.status(404).end();
+      }
+
+      person.name = name?.trim();
+      person.number = number?.trim();
+
+      return person.save().then((updatedPerson) => {
+        response.json(updatedPerson);
+      });
+    })
+    .catch((error) => next(error));
 });
 
 // MIDDLEWARE Check for unknown endpoint
-/* const unknownEndpoint = (request, response) => {
-  response.status(404).send({ error: "unknown endpoint" });
+const unknownEndpoint = (request, response) => {
+  response.status(404).json({ error: "unknown endpoint" });
 };
 
-app.use(unknownEndpoint); */
+app.use(unknownEndpoint);
+
+// MIDDLEWARE Error Handler
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message);
+
+  if (error.name === "CastError") {
+    return response.status(400).json({ error: "malformed id" });
+  } else if (error.name === "ValidationError") {
+    return response.status(400).json({ error: error.message });
+  }
+
+  next(error);
+};
+
+app.use(errorHandler);
 
 // Port
 const PORT = process.env.PORT || 3001;
