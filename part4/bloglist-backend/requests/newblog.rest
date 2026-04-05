@@ -2,8 +2,8 @@ POST http://localhost:3001/api/blogs HTTP/1.1
 Content-Type: application/json
 
 {
-    "title": "Deez",
-    "author": "Nuts",
+    "title": "New New Blog",
+    "author": "Me",
     "url": "https://www.deeznuts.com",
     "likes": "69"
 }
